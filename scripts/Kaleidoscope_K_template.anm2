@@ -1,0 +1,76 @@
+--infomation:${SCRIPT_NAME} ${VERSION}
+--label:${LABEL}
+--track0:X Center,-4000,4000,0,0.01
+--track1:Y Center,-4000,4000,0,0.01
+--track@t4:Tile Scale,0,1000,100,0.01
+--track2:Tile Size,0,1000,100,0.01
+--track3:Rotation,-3600,3600,0,0.01
+--check0:Floating Center,0
+--check@c1:Lock Center Position,1
+--select@s0:Mirroring,Unfold=0,Wheel=1,Fish Head=2,Can Meas=3,Flip Flop=4,Flower=5,Dia Cross=6,Flipper=7,Starlish=8,Tiler=9
+--value@_0:PI,{}
+--[[pixelshader@kaleidoscope:
+${SHADER_KALEIDOSCOPE}
+]]
+
+obj.setanchor("track", 0, "line")
+
+local EPS = 1.0e-4
+
+_0 = _0 or {}
+local cx = tonumber(_0[1]) or obj.track0
+local cy = tonumber(_0[2]) or obj.track1
+local scale = 100.0 / math.max(tonumber(_0[3]) or t4, EPS) t4 = nil
+local size = math.max((tonumber(_0[4]) or obj.track2) * 0.01, EPS)
+local rotation = tonumber(_0[5]) or obj.track3
+local floating_c = obj.check0
+if (type(_0[6]) == "boolean") then
+    floating_c = _0[6]
+elseif (type(_0[6]) == "number") then
+    floating_c = _0[6] ~= 0
+end
+local lock_c_pos = c1 ~= 0 c1 = nil
+if (type(_0[7]) == "boolean") then
+    lock_c_pos = _0[7]
+elseif (type(_0[7]) == "number") then
+    lock_c_pos = _0[7] ~= 0
+end
+local mirroring = tonumber(_0[8]) or s0 s0 = nil
+if (not lock_c_pos) then
+    cx, cy = cx * scale, cy * scale
+end
+_0 = nil
+
+local w, h = obj.getpixel()
+local half_w, half_h = w * 0.5, h * 0.5
+local tile_size = -math.max(half_w, half_h) * size
+local ox, oy = 0.0, 0.0
+if (not floating_c) then
+    ox, oy = cx, cy
+end
+
+
+local function make_rot_mat(rad)
+    local cos = math.cos(rad)
+    local sin = math.sin(rad)
+    return {
+        cos,  sin,
+        -sin, cos
+    }
+end
+
+
+local rm = make_rot_mat(math.rad(rotation))
+local rm_45 = make_rot_mat(math.pi * 0.25)
+obj.pixelshader("kaleidoscope", "object", "object", {
+    rm[1],    rm[2],    0.0, 0.0, -- Padding
+    rm[3],    rm[4],    0.0, 0.0,
+    rm_45[1], rm_45[2], 0.0, 0.0,
+    rm_45[3], rm_45[4],
+    w, h,
+    cx + half_w, cy + half_h,
+    ox, oy,
+    tile_size, tile_size,
+    scale,
+    mirroring
+})

@@ -13,7 +13,7 @@
 
 ## 動作確認
 
-- [AviUtl ExEdit2 beta3](https://spring-fragrance.mints.ne.jp/aviutl/)
+- [AviUtl ExEdit2 beta6](https://spring-fragrance.mints.ne.jp/aviutl/)
 
 ## 導入・削除・更新
 
@@ -23,7 +23,9 @@
 
 ### 導入
 
-1.  同梱の`*.anm2`を`C:\\ProgramData\\aviutl2\\Script`フォルダまたはその子フォルダに入れる．
+1.  同梱の`*.anm2`を`%ProgramData%`内の`aviutl2\\Script`フォルダまたはその子フォルダに入れる．
+
+`beta4`以降では`aviutl2.exe`と同じ階層内の`data\\Script`フォルダ内でも可．
 
 ### 削除
 
@@ -87,12 +89,31 @@
 
   パラメータインジェクション．ここで指定すると，設定パネルの値を上書きする．
 
-  入力はパラメータ値をUIの並び順に指定する．
+  ```lua
+  {
+    cx = 0.0, -- 中心X座標 (number)
+    cy = 0.0, -- 中心Y座標 (number)
+    tile_scale = 100.0, -- 万華鏡全体のスケール (number)
+    tile_size = 100.0, -- タイスサイズ (number)
+    rotation = 0.0, -- 回転量 (number)
+    floating_center = false, -- 万華鏡中心を移動させる (boolean or number)
+    lock_center_pos = true, -- 中心座標をスケーリング対象外にするかどうか (boolean or number)
+    mirroring = 0 -- 万華鏡の種類 (number)
+  }
+  ```
+
+  `{}`は既に挿入済みであるため，PI項目では中身のみ記載する．
 
 ## License
 
 LICENSEファイルに記載．
 
 ## Change Log
+
+- **v1.0.1**
+  - 改行コードをCRLFに変更．
+
+  - PIでkey指定するように変更． (v1.0.0とPI項目に互換性がない．)
+
 - **v1.0.0**
   - Release

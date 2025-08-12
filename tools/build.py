@@ -3,7 +3,7 @@ import json
 import shutil
 from pathlib import Path
 
-import build_lib
+import libs.build_lib as build_lib
 
 
 def get_args():

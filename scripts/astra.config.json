@@ -1,0 +1,31 @@
+{
+    "project": {
+        "name": "Kaleidoscope_K",
+        "author": "Korarei"
+    },
+    "build": {
+        "directory": "build",
+        "scripts": [
+            {
+                "suffix": ".anm2",
+                "source": {
+                    "variables": {
+                        "LABEL": "変形"
+                    }
+                }
+            }
+        ]
+    },
+    "release": {
+        "directory": "release",
+        "archive": {
+            "files": [
+                "../README.md",
+                "../LICENSE"
+            ]
+        },
+        "notes": {
+            "source": "../README.md"
+        }
+    }
+}

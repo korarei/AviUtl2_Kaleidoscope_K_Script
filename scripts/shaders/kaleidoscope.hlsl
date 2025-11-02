@@ -1,6 +1,6 @@
-Texture2D texture0 : register(t0);
-SamplerState sampler0 : register(s0);
-cbuffer constant0 : register(b0) {
+Texture2D src : register(t0);
+SamplerState smp : register(s0);
+cbuffer params : register(b0) {
     column_major float2x2 rm;
     column_major float2x2 rm_45;
     float2 res;
@@ -18,9 +18,9 @@ static const float2 diag = float2(1.0, 1.0) * rcp(sqrt(2.0));
 static const float arg_8 = rcp(sqrt(2.0));
 static const float arg_16 = cos(PI * rcp(8.0));
 
-struct PS_INPUT {
+struct PS_Input {
     float4 pos : SV_Position;
-    float2 uv : TEXCOORD0;
+    float2 uv : TEXCOORD;
 };
 
 struct TileInfo {
@@ -30,7 +30,7 @@ struct TileInfo {
 
 TileInfo tiler(float2 pos, float2 range) {
     TileInfo tile;
-    int2 idx = (int2)floor(pos * rcp(range));
+    int2 idx = int2(floor(pos * rcp(range)));
     tile.parity = float2(idx & 1);
     tile.pos = pos - idx * range;
     return tile;
@@ -38,7 +38,7 @@ TileInfo tiler(float2 pos, float2 range) {
 
 TileInfo mirror(float2 pos, float2 range) {
     TileInfo tile;
-    int2 idx = (int2)floor(pos * rcp(range));
+    int2 idx = int2(floor(pos * rcp(range)));
     tile.parity = float2(idx & 1);
     float2 tile_pos = pos - idx * range;
     tile.pos = lerp(tile_pos, range - tile_pos, tile.parity);
@@ -104,46 +104,43 @@ float2 starlish(float2 pos) {
     return lerp(base_tile, mul(rm_45, base_tile.yx), flag);
 }
 
-float4 kaleidoscope(PS_INPUT input) : SV_Target {
-    float2 rel_pos = (input.uv * res - pivot + offset) * scale;
+float4 kaleidoscope(PS_Input input) : SV_Target {
+    float2 pos = (input.uv * res - pivot + offset) * rcp(scale);
 
-    float2 tile_pos = rel_pos;
+    float2 tile_pos = pos;
     switch (int(mirroring)) {
         case 0:
-            tile_pos = unfold(rel_pos);
+            tile_pos = unfold(pos);
             break;
         case 1:
-            tile_pos = wheel(rel_pos);
+            tile_pos = wheel(pos);
             break;
         case 2:
-            tile_pos = fish_head(rel_pos);
+            tile_pos = fish_head(pos);
             break;
         case 3:
-            tile_pos = can_meas(rel_pos);
+            tile_pos = can_meas(pos);
             break;
         case 4:
-            tile_pos = flip_flop(rel_pos);
+            tile_pos = flip_flop(pos);
             break;
         case 5:
-            tile_pos = flower(rel_pos);
+            tile_pos = flower(pos);
             break;
         case 6:
-            tile_pos = dia_cross(rel_pos);
+            tile_pos = dia_cross(pos);
             break;
         case 7:
-            tile_pos = flipper(rel_pos);
+            tile_pos = flipper(pos);
             break;
         case 8:
-            tile_pos = starlish(rel_pos);
+            tile_pos = starlish(pos);
             break;
         case 9:
             break;
     }
 
     tile_pos = mul(rm, tile_pos);
-
-    TileInfo coord = mirror(tile_pos + pivot, res);
-    float2 inv_res = rcp(res);
-    float2 e = 0.5 * inv_res;
-    return texture0.Sample(sampler0, clamp(coord.pos * inv_res, e, 1.0 - e));
+    float2 coord = (tile_pos + pivot) * rcp(res);
+    return src.Sample(smp, coord);
 }

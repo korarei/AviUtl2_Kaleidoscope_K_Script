@@ -13,7 +13,10 @@
 
 ## 動作確認
 
-- [AviUtl ExEdit2 beta6](https://spring-fragrance.mints.ne.jp/aviutl/)
+- [AviUtl ExEdit2 beta18b](https://spring-fragrance.mints.ne.jp/aviutl/)
+
+> [!CAUTION]
+> beta18以降必須．
 
 ## 導入・削除・更新
 
@@ -23,9 +26,9 @@
 
 ### 導入
 
-1.  同梱の`*.anm2`を`%ProgramData%`内の`aviutl2\\Script`フォルダまたはその子フォルダに入れる．
+1.  同梱の`*.anm2`を`%ProgramData%`内の`aviutl2\Script`フォルダまたはその子フォルダに入れる．
 
-`beta4`以降では`aviutl2.exe`と同じ階層内の`data\\Script`フォルダ内でも可．
+`beta4`以降では`aviutl2.exe`と同じ階層内の`data\Script`フォルダ内でも可．
 
 ### 削除
 
@@ -41,10 +44,6 @@
 
   中心座標を指定する．この値はアンカーでも指定可能．
 
-- Tile Scale
-
-  万華鏡全体のスケールを変更する．タイル (繰り返し単位) がスケーリングされたとも言える．
-
 - Tile Size
 
   タイルとして使用する領域サイズを割合で指定する．200.0のとき，画像の縦と横のうち大きい方のサイズとなる．
@@ -53,13 +52,13 @@
 
   タイルを回転させる．
 
+- Scale
+
+  万華鏡全体のスケールを変更する．
+
 - Floating Center
 
   `Center`で指定した場所を万華鏡の中心とする．
-
-- Lock Center Position
-
-  `Tile Scale`を調整した際，`Center`値をスケーリングしないかどうかを決める．`true`で固定．
 
 - Mirroring
 
@@ -93,11 +92,10 @@
   {
     cx = 0.0, -- 中心X座標 (number)
     cy = 0.0, -- 中心Y座標 (number)
-    tile_scale = 100.0, -- 万華鏡全体のスケール (number)
     tile_size = 100.0, -- タイスサイズ (number)
     rotation = 0.0, -- 回転量 (number)
+    scale = 100.0, -- 万華鏡全体のスケール (number)
     floating_center = false, -- 万華鏡中心を移動させる (boolean or number)
-    lock_center_pos = true, -- 中心座標をスケーリング対象外にするかどうか (boolean or number)
     mirroring = 0 -- 万華鏡の種類 (number)
   }
   ```
@@ -109,10 +107,13 @@
 LICENSEファイルに記載．
 
 ## Change Log
+- **v1.0.2**
+  - SamplerStateおよびTEXCOORDをbeta18の仕様に変更
+  - `Tile Scale`を`Scale`に変更 (破壊的)
+  - `Lock Center Position`の廃止 (破壊的)
 
 - **v1.0.1**
   - 改行コードをCRLFに変更．
-
   - PIでkey指定するように変更． (v1.0.0とPI項目に互換性がない．)
 
 - **v1.0.0**

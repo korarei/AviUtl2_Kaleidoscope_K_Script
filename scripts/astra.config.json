@@ -16,6 +16,9 @@
             }
         ]
     },
+    "install": {
+        "clean": false
+    },
     "release": {
         "directory": "release",
         "archive": {

@@ -24,7 +24,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        submodules: "recursive"
 
     - name: Extract script name
       run: |
@@ -35,15 +34,18 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.14'
 
     - name: Build script
       run: |
-          python tools/build.py --tag ${{ github.ref_name }}
+          pip install git+https://github.com/korarei/AviUtl2_Astra.git@v0.2.0
+          cd ${{ github.workspace }}/scripts
+          astra build -v ${{ github.ref_name }}
+          astra release
 
     - name: Create release
       uses: softprops/action-gh-release@v2
       with:
         name: ${{ env.SCRIPT_NAME }}_${{ github.ref_name }}
-        files: 'build/*.zip'
-        body_path: build/release_note.txt
+        files: 'scripts/release/*.zip'
+        body_path: scripts/release/release_notes.txt

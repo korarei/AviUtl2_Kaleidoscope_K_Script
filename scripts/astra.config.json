@@ -17,7 +17,7 @@
         ]
     },
     "install": {
-        "clean": false
+        "directory": "C:/ProgramData/aviutl2/Script"
     },
     "release": {
         "directory": "release",

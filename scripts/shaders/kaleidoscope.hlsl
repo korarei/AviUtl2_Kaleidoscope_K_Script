@@ -2,145 +2,135 @@ Texture2D src : register(t0);
 SamplerState smp : register(s0);
 cbuffer params : register(b0) {
     column_major float2x2 rm;
-    column_major float2x2 rm_45;
-    float2 res;
-    float2 pivot;
     float2 offset;
-    float2 tile_size;
+    float2 pivot;
+    float aspect;
+    float size;
     float scale;
     float mirroring;
 };
 
-#define PI 3.1415927
-
-static const float2 up = float2(0.0, -1.0);
-static const float2 diag = float2(1.0, 1.0) * rcp(sqrt(2.0));
-static const float arg_8 = rcp(sqrt(2.0));
-static const float arg_16 = cos(PI * rcp(8.0));
+static const float rsqrt2 =  rsqrt(2.0);
 
 struct PS_Input {
     float4 pos : SV_Position;
     float2 uv : TEXCOORD;
 };
 
-struct TileInfo {
-    float2 parity;
+struct Tile {
+    int2 odd;
     float2 pos;
 };
 
-TileInfo tiler(float2 pos, float2 range) {
-    TileInfo tile;
-    int2 idx = int2(floor(pos * rcp(range)));
-    tile.parity = float2(idx & 1);
-    tile.pos = pos - idx * range;
+inline float2 r45(float2 pos) {
+    return float2(pos.x - pos.y, pos.x + pos.y) * rsqrt2;
+}
+
+inline float2 pingpong(float2 pos) {
+    return 1.0 - abs(mad(frac(pos * 0.5), 2.0, -1.0));
+}
+
+inline Tile wrap(float2 pos) {
+    Tile tile;
+    float2 idx = floor(pos);
+    tile.odd = int2(idx) & 1;
+    tile.pos = pos - idx;
     return tile;
 }
 
-TileInfo mirror(float2 pos, float2 range) {
-    TileInfo tile;
-    int2 idx = int2(floor(pos * rcp(range)));
-    tile.parity = float2(idx & 1);
-    float2 tile_pos = pos - idx * range;
-    tile.pos = lerp(tile_pos, range - tile_pos, tile.parity);
+inline Tile mirror(float2 pos) {
+    Tile tile;
+    float2 idx = floor(pos);
+    tile.odd = int2(idx) & 1;
+    tile.pos = abs(tile.odd + idx - pos);
     return tile;
 }
 
-float2 unfold(float2 pos) {
-    TileInfo tile = mirror(pos, tile_size);
-    return tile.pos;
+inline float2 unfold(float2 pos) {
+    return pingpong(pos);
 }
 
-float2 wheel(float2 pos) {
-    TileInfo tile = mirror(pos, tile_size);
-    float flag = step(1.0, abs(tile.parity.x - tile.parity.y));
+inline float2 wheel(float2 pos) {
+    Tile tile = mirror(pos);
+    int flag = tile.odd.x ^ tile.odd.y;
     return lerp(tile.pos, tile.pos.yx, flag);
 }
 
-float2 fish_head(float2 pos) {
-    TileInfo tile = mirror(pos, tile_size);
-    return lerp(tile.pos.yx, tile.pos, tile.parity.x);
+inline float2 fish_head(float2 pos) {
+    Tile tile = mirror(pos);
+    return lerp(tile.pos.yx, tile.pos, tile.odd.x);
 }
 
-float2 can_meas(float2 pos) {
-    TileInfo tile = mirror(pos, tile_size);
-    return lerp(tile.pos.yx, tile.pos, tile.parity.y);
+inline float2 can_meas(float2 pos) {
+    Tile tile = mirror(pos);
+    return lerp(tile.pos.yx, tile.pos, tile.odd.y);
 }
 
-float2 flip_flop(float2 pos) {
-    TileInfo tile = tiler(pos, tile_size);
-    float2 flag = float2(tile.parity.x, 1.0);
-    return lerp(tile.pos, tile_size - tile.pos, flag);
+inline float2 flip_flop(float2 pos) {
+    Tile tile = wrap(pos);
+    return abs(float2(tile.odd.x, 1.0) - tile.pos);
 }
 
-float2 flower(float2 pos) {
-    TileInfo tile = mirror(pos, tile_size);
-    float flag = step(tile.pos.x, tile.pos.y);
-    return lerp(tile.pos, tile.pos.yx, flag);
+inline float2 flower(float2 pos) {
+    pos = pingpong(pos);
+    return lerp(pos, pos.yx, step(pos.y, pos.x));
 }
 
-float2 dia_cross(float2 pos) {
-    float2 st = float2(tile_size.x, 0.0);
-    float2 range = float2(tile_size.x * 2.0, tile_size.y);
-    TileInfo t_1 = tiler(pos + st, range);
-    TileInfo t_2 = tiler(pos.yx + st, range);
-    float2 pos_1 = lerp(t_1.pos - st, tile_size - t_1.pos, t_1.parity.y);
-    float2 pos_2 = lerp(t_2.pos - st, tile_size - t_2.pos, t_2.parity.y);
-    float2 dir = normalize(pos_1);
-    float flag = step(arg_8, dot(up, dir));
-    return lerp(pos_2, pos_1, flag);
+inline float2 dia_cross(float2 pos) {
+    pos = mad(frac(mad(pos, 0.5, 0.5)), 2.0, -1.0);
+    return r45(abs(r45(pos)).yx);
 }
 
-float2 flipper(float2 pos) {
-    TileInfo tile = tiler(pos, tile_size);
-    return lerp(tile.pos, tile_size - tile.pos, tile.parity.y);
+inline float2 flipper(float2 pos) {
+    Tile tile = wrap(pos);
+    return abs(tile.odd.y - tile.pos);
 }
 
-float2 starlish(float2 pos) {
-    TileInfo tile = mirror(pos, tile_size);
-    float base_flag = step(tile.pos.x, tile.pos.y);
-    float2 base_tile = lerp(tile.pos, tile.pos.yx, base_flag);
-    float2 dir = normalize(abs(tile.pos));
-    float flag = step(arg_16, dot(diag, dir));
-    return lerp(base_tile, mul(rm_45, base_tile.yx), flag);
+inline float2 starlish(float2 pos) {
+    float2 p0 = flower(pos);
+    float2 p1 = r45(p0.yx);
+    return lerp(p0, p1, step(p1.x, p0.x));
 }
 
 float4 kaleidoscope(PS_Input input) : SV_Target {
-    float2 pos = (input.uv * res - pivot + offset) * rcp(scale);
+    float2 pos = (input.uv - offset) * 2.0 * rcp(size) * rcp(scale);
+    pos.y *= aspect;
+    pos = -pos;
 
-    float2 tile_pos = pos;
     switch (int(mirroring)) {
         case 0:
-            tile_pos = unfold(pos);
+            pos = unfold(pos);
             break;
         case 1:
-            tile_pos = wheel(pos);
+            pos = wheel(pos);
             break;
         case 2:
-            tile_pos = fish_head(pos);
+            pos = fish_head(pos);
             break;
         case 3:
-            tile_pos = can_meas(pos);
+            pos = can_meas(pos);
             break;
         case 4:
-            tile_pos = flip_flop(pos);
+            pos = flip_flop(pos);
             break;
         case 5:
-            tile_pos = flower(pos);
+            pos = flower(pos);
             break;
         case 6:
-            tile_pos = dia_cross(pos);
+            pos = dia_cross(pos);
             break;
         case 7:
-            tile_pos = flipper(pos);
+            pos = flipper(pos);
             break;
         case 8:
-            tile_pos = starlish(pos);
+            pos = starlish(pos);
             break;
-        case 9:
+        default:
             break;
     }
 
-    tile_pos = mul(rm, tile_pos);
-    float2 coord = (tile_pos + pivot) * rcp(res);
+    pos = mul(rm, -pos);
+    pos.y *= rcp(aspect);
+    float2 coord = mad(pos, 0.5 * size, pivot);
     return src.Sample(smp, coord);
 }

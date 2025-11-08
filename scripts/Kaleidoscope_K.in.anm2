@@ -20,6 +20,7 @@ end
 obj.setanchor("track", 0, "line")
 
 local eps = 1.0e-4
+local w, h = obj.getpixel()
 
 local function tobool(v, d)
     if (type(v) == "boolean") then
@@ -32,45 +33,30 @@ local function tobool(v, d)
 end
 
 _0 = _0 or {}
-local cx = tonumber(_0.cx) or obj.track0
-local cy = tonumber(_0.cy) or obj.track1
+local cx = (tonumber(_0.cx) or obj.track0) / w + 0.5
+local cy = (tonumber(_0.cy) or obj.track1) / h + 0.5
 local size = math.max((tonumber(_0.tile_size) or obj.track2) * 0.01, eps)
-local rot = tonumber(_0.rotation) or obj.track3
+local rot = math.rad(tonumber(_0.rotation) or obj.track3)
 local scale = math.max((tonumber(_0.scale) or obj.track4) * 0.01, eps)
 local floating_c = tobool(_0.floating_center, obj.check0)
 local mirroring = tonumber(_0.mirroring) or s0 s0 = nil
 _0 = nil
 
-local w, h = obj.getpixel()
-local half_w, half_h = w * 0.5, h * 0.5
-local tile_size = -math.max(half_w, half_h) * size
-local ox, oy = 0.0, 0.0
-if (not floating_c) then
+local aspect = h / w
+local ox, oy = 0.5, 0.5
+if (floating_c) then
     ox, oy = cx, cy
 end
 
-
-local function make_rot_mat(rad)
-    local cos = math.cos(rad)
-    local sin = math.sin(rad)
-    return {
-        cos,  sin,
-        -sin, cos
-    }
-end
-
-
-local rm = make_rot_mat(math.rad(rot))
-local rm_45 = make_rot_mat(math.pi * 0.25)
+local c = math.cos(rot)
+local s = math.sin(rot)
 obj.pixelshader("kaleidoscope", "object", "object", {
-    rm[1],    rm[2],    0.0, 0.0, -- Padding
-    rm[3],    rm[4],    0.0, 0.0,
-    rm_45[1], rm_45[2], 0.0, 0.0,
-    rm_45[3], rm_45[4],
-    w, h,
-    cx + half_w, cy + half_h,
+    c,  s, 0.0, 0.0, -- Padding
+    -s, c,
     ox, oy,
-    tile_size, tile_size,
+    cx, cy,
+    aspect,
+    size,
     scale,
     mirroring
 }, "copy", "mirror")

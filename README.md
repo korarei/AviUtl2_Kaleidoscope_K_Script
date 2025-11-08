@@ -107,10 +107,13 @@
 LICENSEファイルに記載．
 
 ## Change Log
+- **v1.0.3**
+  - コード整理．
+
 - **v1.0.2**
-  - SamplerStateおよびTEXCOORDをbeta18の仕様に変更
-  - `Tile Scale`を`Scale`に変更 (破壊的)
-  - `Lock Center Position`の廃止 (破壊的)
+  - SamplerStateおよびTEXCOORDをbeta18の仕様に変更．
+  - `Tile Scale`を`Scale`に変更． (破壊的)
+  - `Lock Center Position`の廃止． (破壊的)
 
 - **v1.0.1**
   - 改行コードをCRLFに変更．
